@@ -45,14 +45,24 @@ If you do wish to donate to this project, please do so via the bitcoin address b
 
 ## Building
 
-Thanks to [rajesh6115](https://github.com/rajesh6115) this build can now be completed using autotools.
+KSMPPD builds with CMake (3.18 or newer).
 
 ### Dependencies
 
+- Kannel gwlib, found through `gw-config` (Kannel 1.4.5 or trunk, built with MySQL support)
+- libevent 2.0 or newer
+- libxml2
+- pkg-config
 
-#### Kannel
+On Debian/Ubuntu, Kannel 1.4.5 is packaged, so everything comes from apt:
 
-You need to have kannel installed with MySQL support in order to compile successfully. If you don't have kannel installed, you can do so by executing the following commands.
+    sudo apt-get install build-essential cmake pkg-config kannel-dev libevent-dev libxml2-dev \
+        libssl-dev libpq-dev libmariadb-dev libmariadb-dev-compat libpam0g-dev \
+        libpcre3-dev libsqlite3-dev libhiredis-dev freetds-dev libnsl-dev
+
+The extra `-dev` packages are the libraries listed by `gw-config --libs`, needed to link the static gwlib.
+
+To use Kannel trunk instead, build and install it first:
 
     svn co https://svn.kannel.org/gateway/trunk kannel-trunk
     cd kannel-trunk
@@ -61,27 +71,24 @@ You need to have kannel installed with MySQL support in order to compile success
     make
     sudo make install
 
-Assuming the above is done successfully (you may need to install MySQL, libxml2, etc dependencies to successfully build).
-
-#### Other dependencies
-
-libevent
-
-    yum install -y libevent-devel
-    
 ### Building KSMPPD
 
-Now that you have the dependencies ready you can do the following.
-
-    git clone https://github.com/kneodev/ksmppd.git
+    git clone https://github.com/rajesh6115/ksmppd.git
     cd ksmppd
-    ./bootstrap.sh
+    cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+    cmake --build build
+    sudo cmake --install build
 
-If the above goes well (you will only need to bootstrap once)
+The binary is `build/ksmppd`. `cmake --install` places it in `bin/` and the sample configuration, example configurations, and database schemas in `share/ksmppd/`.
 
-    make
+Set `-DKSMPPD_GIT_VERSION=<version>` when building outside a git checkout; otherwise the version comes from `git describe`.
 
-You can now run using ./smpp/ksmppd.
+### Docker
+
+    docker build --build-arg KSMPPD_GIT_VERSION=$(git describe --always --tags) -t ksmppd .
+    docker run --rm -p 2345:2345 -p 14010:14010 -v $PWD/ksmppd.conf:/etc/ksmppd/ksmppd.conf:ro ksmppd /etc/ksmppd/ksmppd.conf
+
+The image builds against Debian bookworm's `kannel-dev` package and runs as an unprivileged user.
 
 ## Using KSMPPD
 

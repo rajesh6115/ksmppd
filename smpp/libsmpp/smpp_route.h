@@ -62,7 +62,11 @@
 #ifndef SMPP_ROUTE_H
 #define	SMPP_ROUTE_H
 
+#ifdef HAVE_GWLIB_GW_REGEX_H
 #include "gwlib/gw-regex.h"
+#else
+#include "gwlib/regex.h"
+#endif
 
 #ifdef	__cplusplus
 extern "C" {

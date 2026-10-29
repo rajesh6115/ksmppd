@@ -1,0 +1,8 @@
+.git
+build*/
+Dockerfile
+.dockerignore
+*.o
+*.a
+*.lo
+*.log
